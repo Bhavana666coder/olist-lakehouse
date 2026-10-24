@@ -1,0 +1,79 @@
+services:
+  namenode:
+    image: olist-hadoop:3.3.6
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.hadoop
+    container_name: namenode
+    hostname: namenode
+    command: ["hdfs", "namenode"]
+    ports:
+      - "9870:9870"
+      - "8020:8020"
+    env_file: ./hadoop.env
+    environment:
+      ENSURE_NAMENODE_DIR: "/tmp/hadoop-hadoop/dfs/name"
+    volumes:
+      - namenode_data:/tmp/hadoop-hadoop/dfs/name
+
+  datanode:
+    image: olist-hadoop:3.3.6
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.hadoop
+    container_name: datanode
+    hostname: datanode
+    command: ["hdfs", "datanode"]
+    env_file: ./hadoop.env
+    depends_on:
+      - namenode
+    volumes:
+      - datanode_data:/tmp/hadoop-hadoop/dfs/data
+
+  resourcemanager:
+    image: olist-hadoop:3.3.6
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.hadoop
+    container_name: resourcemanager
+    hostname: resourcemanager
+    command: ["yarn", "resourcemanager"]
+    ports:
+      - "8088:8088"
+    env_file: ./hadoop.env
+    depends_on:
+      - namenode
+
+  nodemanager:
+    image: olist-hadoop:3.3.6
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.hadoop
+    container_name: nodemanager
+    hostname: nodemanager
+    command: ["yarn", "nodemanager"]
+    env_file: ./hadoop.env
+    depends_on:
+      - resourcemanager
+
+  spark-client:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.spark
+    container_name: spark-client
+    hostname: spark-client
+    env_file: ./hadoop.env
+    environment:
+      SPARK_PYSPARK_PYTHON: /opt/python38/bin/python3
+    depends_on:
+      - namenode
+      - resourcemanager
+    volumes:
+      - ../src:/app/src
+      - ../data:/app/data
+      - ../docker/hadoop-config:/opt/hadoop/etc/hadoop
+    command: ["sleep", "infinity"]
+
+volumes:
+  namenode_data:
+  datanode_data:

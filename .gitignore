@@ -7,3 +7,16 @@ __pycache__/
 .idea/
 .vscode/
 *.log
+
+# Python build files
+python-build/
+
+# Local execution results
+analytics_results.txt
+analytics_verification.txt
+curation_results.txt
+dq_results.txt
+verify_curated_results.txt
+
+# Temporary and backup files
+docker/docker-compose.yml.backup

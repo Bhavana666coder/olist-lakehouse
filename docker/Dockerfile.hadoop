@@ -1,0 +1,17 @@
+FROM apache/hadoop:3.3.6
+
+USER root
+
+RUN set -eux; \
+    curl -fL \
+      https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh \
+      -o /tmp/miniforge.sh; \
+    bash /tmp/miniforge.sh -b -p /opt/conda; \
+    /opt/conda/bin/conda create -y -p /opt/python38 python=3.8.20; \
+    /opt/python38/bin/python3 --version; \
+    rm -f /tmp/miniforge.sh; \
+    /opt/conda/bin/conda clean -afy
+
+ENV PYSPARK_PYTHON=/opt/python38/bin/python3
+
+USER hadoop

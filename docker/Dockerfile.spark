@@ -1,0 +1,12 @@
+FROM apache/spark:3.5.1
+
+USER root
+
+WORKDIR /app
+
+ENV PYSPARK_PYTHON=python3
+ENV PYSPARK_DRIVER_PYTHON=python3
+
+RUN python3 -m pip install --no-cache-dir pandas pyarrow
+
+CMD ["sleep", "infinity"]
