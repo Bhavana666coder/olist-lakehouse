@@ -150,3 +150,82 @@ The training scripts save model artifacts and evaluation outputs to HDFS in the 
 Source code and project documentation are maintained in the GitHub repository:
 
 https://github.com/Bhavana666coder/olist-lakehouse
+
+---
+
+## 11. Spark on YARN Performance Tuning Study
+
+This project benchmarks Apache Spark workloads running on YARN using the Olist e-commerce dataset. It investigates how shuffle partition counts, broadcast joins, Adaptive Query Execution (AQE), partition pruning, and Parquet file layout affect execution time.
+
+### Experiments
+
+1. **Shuffle partition tuning:** Compare 200 shuffle partitions against 50.
+2. **Broadcast joins:** Evaluate explicit broadcast joins for product and seller tables.
+3. **Adaptive Query Execution:** Compare AQE enabled and disabled.
+4. **Partition pruning:** Compare filtering partitioned and unpartitioned order data.
+5. **Small-file overhead:** Compare reading a layout containing many Parquet files with a layout containing fewer files.
+
+### Benchmark Environment
+
+- Apache Spark 3.5.1
+- Hadoop 3.3.6 and YARN
+- HDFS storage
+- Docker Compose
+- PySpark and Parquet
+- Synthetic benchmark data created by replicating Olist records 20 times
+
+The scaled order-items dataset contains 2,253,000 rows. Replicated records are synthetic benchmark data, not additional real-world transactions.
+
+### Join and Aggregation Results
+
+| Configuration | Shuffle Partitions | Broadcast | AQE | Runtime |
+|---|---:|---|---|---:|
+| Baseline | 200 | No | No | 67.00 s |
+| Reduced shuffle partitions | 50 | No | No | 34.37 s |
+| Broadcast joins | 50 | Yes | No | 31.97 s |
+| Adaptive Query Execution | 50 | No | Yes | 29.99 s |
+
+All four configurations produced 1,394 aggregated result rows.
+
+The AQE configuration recorded the lowest runtime in this experiment, approximately 55.2% lower than the baseline runtime.
+
+### Partition-Pruning Results
+
+The experiment filtered orders with the status `delivered`.
+
+| Layout | Matching Rows | Read Time |
+|---|---:|---:|
+| Unpartitioned Parquet | 96,478 | 2.05 s |
+| Partitioned by order status | 96,478 | 1.12 s |
+
+The partitioned layout recorded approximately 45.4% lower read time in this run.
+
+### Small-Files Results
+
+The experiment compared two Parquet layouts containing the same scaled order data.
+
+| Layout | Parquet Files | Rows Read | Read Time |
+|---|---:|---:|---:|
+| Many files | 200 | 1,988,820 | 4.54 s |
+| Fewer files | 2 | 1,988,820 | 0.80 s |
+
+The two-file layout recorded approximately 82.4% lower read time in this run.
+
+### Key Findings
+
+- Reducing shuffle partitions improved the observed join-and-aggregation runtime.
+- Explicit broadcast joins and AQE produced additional improvements in the tested configurations.
+- Partitioning by order status reduced the observed time for a matching filter query.
+- Reading fewer Parquet files substantially reduced the observed read time in this environment.
+
+### Benchmark Limitations
+
+Each configuration was measured once. Results can vary with caching, container resources, YARN scheduling, and system load. These measurements are preliminary and should not be interpreted as guaranteed performance improvements. Repeated trials and Spark UI analysis would provide stronger evidence.
+
+### Benchmark Files
+
+- `src/08_scale_data.py` — creates synthetic scaled datasets.
+- `src/09_benchmark.py` — benchmarks joins and aggregation.
+- `src/10_partition_pruning.py` — compares partitioned and unpartitioned reads.
+- `src/11_small_files.py` — compares Parquet file layouts.
+- `benchmarks/results.md` — detailed benchmark report.
