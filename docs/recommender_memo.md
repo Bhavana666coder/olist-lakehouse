@@ -29,14 +29,13 @@ using the Brazilian Olist e-commerce dataset.
    `/datalake/curated/recommender_interactions/`.
 
 ### Data Counts
-The exact record counts at each filtering stage still need to be
-recorded from the preprocessing job. They are not inferred here.
+Counts below are taken from the successful Spark preprocessing log. The customer-product aggregation count was not printed separately.
 
 | Stage | Record count |
 |---|---:|
-| Eligible purchase records after initial filtering | Pending |
+| Delivered order-item records after initial filtering | 110,197 |
 | Customer-product interactions after aggregation | Pending |
-| Interactions after customer/product eligibility filters | 7,302 |
+| Interactions after customer/product eligibility filters | 8,755 |
 | Training interactions | 3,890 |
 | Test interactions | 3,412 |
 
